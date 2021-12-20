@@ -121,20 +121,6 @@ def parse_input(input_filename) -> dict[str, set[str]]:
     return routes
 
 
-def filter_paths_with_multiple_small_caves(paths):
-    result = []
-
-    for path in paths:
-        route = path.split(',')
-        counts = Counter(route)
-        small_caves = [node for node in counts if node.islower()
-                       and counts[node] > 1]
-        if len(small_caves) > 1:
-            continue
-        result.append(path)
-    return result
-
-
 def find_num_paths(routes):
     start = 'start'
     end = 'end'
@@ -145,18 +131,23 @@ def find_num_paths(routes):
     paths = []
     while len(to_visit) > 0:
         node, path, visited, visited_small_cave = to_visit.pop()
+
+        # Added some logic for visiting small cave multiple times
+        # that's not needed...
         if node in visited:
+            if visited_small_cave:
+                continue
             if visited[node] <= 0:
                 continue
             visited[node] -= 1
+            visited_small_cave = True
         else:
             if node == start or node == end:
                 visited[node] = 0
             elif node.islower():
-                visited_small_cave = True
-                # Can only visit lower cased nodes one more time (if not visited)
                 visited[node] = 1
 
+        # Add neighbors to to_visit
         for neighbor in routes[node]:
             neighbor_path = path + [neighbor]
             if neighbor == end:
@@ -164,9 +155,7 @@ def find_num_paths(routes):
             else:
                 to_visit.append(
                     (neighbor, neighbor_path, visited.copy(), visited_small_cave))
-
-    filtered_paths = filter_paths_with_multiple_small_caves(paths)
-    return len(filtered_paths)
+    return len(paths)
 
 
 def main():
@@ -176,4 +165,4 @@ def main():
 
 if __name__ == "__main__":
     result = main()
-    print(result)  # 4104
+    print(result)  # 119760
